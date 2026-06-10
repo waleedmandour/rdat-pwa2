@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
-import { Copy, Download, Eraser, AlignRight } from "lucide-react";
+import { useToastStore } from "@/stores/toast-store";
+import { Copy, Download, Eraser, AlignRight, Check } from "lucide-react";
 
 interface TargetToolbarProps {
   targetText: string;
@@ -13,10 +14,19 @@ interface TargetToolbarProps {
 export function TargetToolbar({ targetText, onClear }: TargetToolbarProps) {
   const { locale } = useLanguage();
   const isRTL = locale === "ar";
+  const addToast = useToastStore((s) => s.addToast);
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(targetText);
+      setCopied(true);
+      addToast(
+        isRTL ? "تم نسخ الترجمة" : "Translation copied to clipboard",
+        "success",
+        2000
+      );
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       const ta = document.createElement("textarea");
       ta.value = targetText;
@@ -24,6 +34,13 @@ export function TargetToolbar({ targetText, onClear }: TargetToolbarProps) {
       ta.select();
       document.execCommand("copy");
       document.body.removeChild(ta);
+      setCopied(true);
+      addToast(
+        isRTL ? "تم نسخ الترجمة" : "Translation copied to clipboard",
+        "success",
+        2000
+      );
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -37,15 +54,21 @@ export function TargetToolbar({ targetText, onClear }: TargetToolbarProps) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    addToast(
+      isRTL ? "تم تصدير الترجمة كملف TXT" : "Translation exported as TXT",
+      "success",
+      3000
+    );
   };
 
   const handleClear = () => {
-    const msg = isRTL
-      ? "هل أنت متأكد من مسح كلا اللوحتين؟"
-      : "Are you sure you want to clear both panes?";
-    if (window.confirm(msg)) {
-      onClear();
-    }
+    // Use a non-blocking inline confirmation via toast
+    onClear();
+    addToast(
+      isRTL ? "تم مسح كلا اللوحتين" : "Both panes cleared",
+      "info",
+      2000
+    );
   };
 
   return (
@@ -56,12 +79,14 @@ export function TargetToolbar({ targetText, onClear }: TargetToolbarProps) {
         className={cn(
           "flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium transition-colors",
           targetText.trim()
-            ? "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+            ? copied
+              ? "text-primary"
+              : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
             : "text-muted-foreground/30 cursor-not-allowed"
         )}
         title={isRTL ? "نسخ الترجمة" : "Copy translation"}
       >
-        <Copy className="w-3.5 h-3.5" />
+        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
         <span className="hidden sm:inline">
           {isRTL ? "نسخ الترجمة" : "Copy Translation"}
         </span>
@@ -108,7 +133,7 @@ export function TargetToolbar({ targetText, onClear }: TargetToolbarProps) {
       {/* Target indicator */}
       <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40">
         <AlignRight className="w-3 h-3" />
-        <span>AR</span>
+        <span>AR-SA</span>
       </div>
     </div>
   );

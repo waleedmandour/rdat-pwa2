@@ -11,10 +11,11 @@ import { AiModelsView } from "./AiModelsView";
 import { GlossaryView } from "./GlossaryView";
 import { QuickGuideModal, hasSeenGuide } from "./QuickGuideModal";
 import { InstallPWAButton } from "./InstallPWAButton";
+import { ToastPortal } from "./ToastPortal";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "next-themes";
-import { Sun, Moon, HelpCircle } from "lucide-react";
+import { Sun, Moon, HelpCircle, BookOpen, Sparkles, RefreshCw } from "lucide-react";
 
 interface WorkspaceShellProps {
   children?: React.ReactNode;
@@ -28,9 +29,17 @@ export function WorkspaceShell({ children, className }: WorkspaceShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
+  // Right panel state
+  const [glossaryPanelOpen, setGlossaryPanelOpen] = useState(false);
+  const [aiTutorPanelOpen, setAiTutorPanelOpen] = useState(false);
+
   // AI engine state
   const [webgpuInfo, setWebgpuInfo] = useState<WebGPUInfo>({ state: "loading" });
   const [geminiAvailable, setGeminiAvailable] = useState(false);
+
+  // Translation state for panels
+  const [currentSource, setCurrentSource] = useState("");
+  const [currentTarget, setCurrentTarget] = useState("");
 
   // Auto-open guide on first visit
   useEffect(() => {
@@ -62,6 +71,14 @@ export function WorkspaceShell({ children, className }: WorkspaceShellProps) {
           <TranslationWorkspace
             onWebgpuStateChange={setWebgpuInfo}
             onGeminiAvailableChange={setGeminiAvailable}
+            onSourceChange={(val) => setCurrentSource(val ?? "")}
+            onTargetChange={(val) => setCurrentTarget(val ?? "")}
+            glossaryPanelOpen={glossaryPanelOpen}
+            aiTutorPanelOpen={aiTutorPanelOpen}
+            onGlossaryPanelClose={() => setGlossaryPanelOpen(false)}
+            onAiTutorPanelClose={() => setAiTutorPanelOpen(false)}
+            sourceText={currentSource}
+            targetText={currentTarget}
           />
         );
       case "glossary":
@@ -101,11 +118,32 @@ export function WorkspaceShell({ children, className }: WorkspaceShellProps) {
           {/* Top Bar (Title/Actions) */}
           <header className="h-10 bg-surface border-b border-border flex items-center px-4 justify-between">
             <div className="flex items-center gap-2">
+              {/* Logo + Back */}
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0">
+                  <img
+                    src="/logo.svg"
+                    alt="Copilot"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="text-xs font-semibold text-primary">Copilot</span>
+              </div>
+              <div className="w-px h-4 bg-border/50 mx-1" />
               <span className="text-sm font-medium text-foreground">
                 {navTitleMap[activeNav]}
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              {/* Sync Button */}
+              <button
+                onClick={() => window.location.reload()}
+                className="p-1.5 rounded-md hover:bg-surface-hover text-muted-foreground hover:text-foreground transition-colors"
+                title={locale === "en" ? "Sync" : "مزامنة"}
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+
               {/* PWA Install Button */}
               <InstallPWAButton />
 
@@ -116,9 +154,9 @@ export function WorkspaceShell({ children, className }: WorkspaceShellProps) {
                 title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
                 {isDark ? (
-                  <Sun className="w-4 h-4" />
+                  <Sun className="w-3.5 h-3.5" />
                 ) : (
-                  <Moon className="w-4 h-4" />
+                  <Moon className="w-3.5 h-3.5" />
                 )}
               </button>
 
@@ -128,14 +166,52 @@ export function WorkspaceShell({ children, className }: WorkspaceShellProps) {
                 className="p-1.5 rounded-md hover:bg-surface-hover text-muted-foreground hover:text-foreground transition-colors"
                 title={locale === "en" ? "Quick Guide" : "دليل سريع"}
               >
-                <HelpCircle className="w-4 h-4" />
+                <HelpCircle className="w-3.5 h-3.5" />
+              </button>
+
+              <div className="w-px h-4 bg-border/50 mx-0.5" />
+
+              {/* Glossary Panel Toggle */}
+              <button
+                onClick={() => {
+                  setGlossaryPanelOpen(!glossaryPanelOpen);
+                  if (aiTutorPanelOpen) setAiTutorPanelOpen(false);
+                }}
+                className={cn(
+                  "px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-colors",
+                  glossaryPanelOpen
+                    ? "bg-primary/20 text-primary"
+                    : "hover:bg-surface-hover text-muted-foreground hover:text-foreground"
+                )}
+                title={locale === "en" ? "Glossary" : "المسرد"}
+              >
+                <BookOpen className="w-3.5 h-3.5 inline mr-1" />
+                {locale === "en" ? "Glossary" : "المسرد"}
+              </button>
+
+              {/* AI Tutor Panel Toggle */}
+              <button
+                onClick={() => {
+                  setAiTutorPanelOpen(!aiTutorPanelOpen);
+                  if (glossaryPanelOpen) setGlossaryPanelOpen(false);
+                }}
+                className={cn(
+                  "px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-colors",
+                  aiTutorPanelOpen
+                    ? "bg-primary/20 text-primary"
+                    : "hover:bg-surface-hover text-muted-foreground hover:text-foreground"
+                )}
+                title={locale === "en" ? "AI Tutor" : "المعلم الذكي"}
+              >
+                <Sparkles className="w-3.5 h-3.5 inline mr-1" />
+                {locale === "en" ? "AI Tutor" : "معلم AI"}
               </button>
 
               {/* Ready Indicator */}
               <div className="flex items-center gap-1.5 ml-1">
                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs text-muted-foreground">
-                  {t("status.ready")}
+                <span className="text-[10px] text-muted-foreground">
+                  {locale === "en" ? "Online" : "متصل"}
                 </span>
               </div>
             </div>
@@ -160,6 +236,9 @@ export function WorkspaceShell({ children, className }: WorkspaceShellProps) {
 
       {/* Quick Guide Modal */}
       <QuickGuideModal open={showGuide} onClose={() => setShowGuide(false)} />
+
+      {/* Toast Notification Portal */}
+      <ToastPortal />
     </div>
   );
 }

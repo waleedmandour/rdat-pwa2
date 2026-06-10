@@ -13,6 +13,9 @@ import { TargetEditor } from "./TargetEditor";
 import { SegmentHighlighter } from "./SegmentHighlighter";
 import { SourceToolbar } from "./SourceToolbar";
 import { TargetToolbar } from "./TargetToolbar";
+import { GlossaryPanel } from "@/components/GlossaryPanel";
+import { AiTutorPanel } from "@/components/AiTutorPanel";
+import { DragDropImporter } from "@/components/DragDropImporter";
 
 // Sample default content for demonstration
 const DEFAULT_SOURCE = `The future of translation technology lies in the seamless integration of artificial intelligence with human expertise. Computer-assisted translation tools have evolved significantly, moving from simple terminology management to sophisticated neural machine translation systems.
@@ -42,6 +45,12 @@ interface TranslationWorkspaceProps {
   onTargetChange?: (value: string | undefined) => void;
   onWebgpuStateChange?: (state: import("@/components/StatusBar").WebGPUInfo) => void;
   onGeminiAvailableChange?: (available: boolean) => void;
+  glossaryPanelOpen?: boolean;
+  aiTutorPanelOpen?: boolean;
+  onGlossaryPanelClose?: () => void;
+  onAiTutorPanelClose?: () => void;
+  sourceText?: string;
+  targetText?: string;
 }
 
 export function TranslationWorkspace({
@@ -51,6 +60,12 @@ export function TranslationWorkspace({
   onTargetChange,
   onWebgpuStateChange,
   onGeminiAvailableChange,
+  glossaryPanelOpen = false,
+  aiTutorPanelOpen = false,
+  onGlossaryPanelClose,
+  onAiTutorPanelClose,
+  sourceText = "",
+  targetText = "",
 }: TranslationWorkspaceProps) {
   const { locale } = useLanguage();
   const { state: ragState, lteSuggest, search } = useRAG();
@@ -121,95 +136,121 @@ export function TranslationWorkspace({
     setTargetValue("");
   }, []);
 
+  // Handle text import from drag-and-drop
+  const handleTextImport = useCallback((text: string, fileName: string) => {
+    setSourceValue(text);
+  }, []);
+
   // Calculate line counts for status bar
   const sourceLineCount = sourceValue.split("\n").filter((l) => l.trim()).length;
   const targetLineCount = targetValue.split("\n").filter((l) => l.trim()).length;
   const wordCount = sourceValue.split(/\s+/).filter((w) => w).length;
 
+  // Current active source line for glossary
+  const activeSourceLine = sourceLinesArr[(targetLine ?? 1) - 1] ?? "";
+
   return (
     <div
-      className={cn("flex flex-col h-full w-full overflow-hidden bg-background")}
+      className={cn("flex h-full w-full overflow-hidden bg-background")}
       dir={locale === "ar" ? "rtl" : undefined}
     >
-      {/* Split Pane Header */}
-      <div className="flex items-center justify-between px-4 py-1.5 bg-surface border-b border-border text-xs">
-        <div className="flex items-center gap-3">
-          <span className="text-muted-foreground">
-            {locale === "ar" ? "المصدر" : "Source"}
-          </span>
-          <span className="text-[10px] text-muted-foreground/50 bg-background/50 px-1.5 py-0.5 rounded">
-            EN · {sourceLineCount} {locale === "ar" ? "أسطر" : "lines"} · {wordCount}{" "}
-            {locale === "ar" ? "كلمة" : "words"}
-          </span>
-        </div>
-
-        {/* Engine Status */}
-        <div className="flex items-center gap-2">
-          {ragState.isLoading && (
-            <span className="text-[10px] text-blue-400 animate-pulse">
-              {locale === "ar" ? "جاري تحميل المحرك…" : "Loading engine…"}
+      {/* Main split-pane area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Split Pane Header */}
+        <div className="flex items-center justify-between px-4 py-1.5 bg-surface border-b border-border text-xs">
+          <div className="flex items-center gap-3">
+            <span className="text-muted-foreground">
+              {locale === "ar" ? "المصدر" : "Source"}
             </span>
-          )}
-          {ragState.isCorpusLoaded && (
-            <span className="text-[10px] text-primary/70">
-              ✓ {ragState.corpusSize} {locale === "ar" ? "مقطع" : "segments"}
+            <span className="text-[10px] text-muted-foreground/50 bg-background/50 px-1.5 py-0.5 rounded">
+              EN · {sourceLineCount} {locale === "ar" ? "أسطر" : "lines"} · {wordCount}{" "}
+              {locale === "ar" ? "كلمة" : "words"}
             </span>
-          )}
-        </div>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-muted-foreground">
-            {locale === "ar" ? "الهدف" : "Target"}
-          </span>
-          <span className="text-[10px] text-muted-foreground/50 bg-background/50 px-1.5 py-0.5 rounded">
-            AR · {targetLineCount} {locale === "ar" ? "أسطر" : "lines"}
-          </span>
-        </div>
-      </div>
+          {/* Engine Status */}
+          <div className="flex items-center gap-2">
+            {ragState.isLoading && (
+              <span className="text-[10px] text-blue-400 animate-pulse">
+                {locale === "ar" ? "جاري تحميل المحرك…" : "Loading engine…"}
+              </span>
+            )}
+            {ragState.isCorpusLoaded && (
+              <span className="text-[10px] text-primary/70">
+                ✓ {ragState.corpusSize} {locale === "ar" ? "مقطع" : "segments"}
+              </span>
+            )}
+          </div>
 
-      {/* Split Pane Editors with Toolbars */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Source Pane (English, LTR, Read-Only) */}
-        <div
-          className={cn(
-            "flex-1 border-r border-border overflow-hidden flex flex-col",
-            locale === "ar" ? "border-r-0 border-l" : ""
-          )}
-        >
-          <SourceToolbar sourceText={sourceValue} onTextChange={(t) => setSourceValue(t)} />
-          <div className="flex-1" style={{ minHeight: 0 }}>
-            <SourceEditor
-              value={sourceValue}
-              onChange={handleSourceChange}
-              highlightedLine={targetLine}
-              className="h-full"
-            />
+          <div className="flex items-center gap-3">
+            <span className="text-muted-foreground">
+              {locale === "ar" ? "الهدف" : "Target"}
+            </span>
+            <span className="text-[10px] text-muted-foreground/50 bg-background/50 px-1.5 py-0.5 rounded">
+              AR · {targetLineCount} {locale === "ar" ? "أسطر" : "lines"}
+            </span>
           </div>
         </div>
 
-        {/* Target Pane (Arabic, RTL, Editable) */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <TargetToolbar targetText={targetValue} onClear={handleClear} />
-          <div className="flex-1" style={{ minHeight: 0 }}>
-            <TargetEditor
-              value={targetValue}
-              onChange={handleTargetChange}
-              onCursorChange={handleTargetCursorChange}
-              sourceLines={sourceLinesArr}
-              onWebgpuStateChange={onWebgpuStateChange}
-              onGeminiAvailableChange={onGeminiAvailableChange}
-              className="h-full"
-            />
+        {/* Split Pane Editors with Toolbars */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Source Pane (English, LTR, Read-Only) — wrapped with DnD */}
+          <DragDropImporter onTextImport={handleTextImport}>
+            <div
+              className={cn(
+                "flex-1 border-r border-border overflow-hidden flex flex-col",
+                locale === "ar" ? "border-r-0 border-l" : ""
+              )}
+            >
+              <SourceToolbar sourceText={sourceValue} onTextChange={(t) => setSourceValue(t)} />
+              <div className="flex-1" style={{ minHeight: 0 }}>
+                <SourceEditor
+                  value={sourceValue}
+                  onChange={handleSourceChange}
+                  highlightedLine={targetLine}
+                  className="h-full"
+                />
+              </div>
+            </div>
+          </DragDropImporter>
+
+          {/* Target Pane (Arabic, RTL, Editable) */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <TargetToolbar targetText={targetValue} onClear={handleClear} />
+            <div className="flex-1" style={{ minHeight: 0 }}>
+              <TargetEditor
+                value={targetValue}
+                onChange={handleTargetChange}
+                onCursorChange={handleTargetCursorChange}
+                sourceLines={sourceLinesArr}
+                onWebgpuStateChange={onWebgpuStateChange}
+                onGeminiAvailableChange={onGeminiAvailableChange}
+                className="h-full"
+              />
+            </div>
           </div>
         </div>
+
+        {/* Segment Highlighter — invisible sync logic */}
+        <SegmentHighlighter
+          sourceLineNumber={sourceLine}
+          targetLineNumber={targetLine}
+          sourceEditorRef={sourceEditorRef as any}
+          targetEditorRef={targetEditorRef as any}
+        />
       </div>
 
-      {/* Segment Highlighter — invisible sync logic */}
-      <SegmentHighlighter
-        sourceLineNumber={sourceLine}
-        targetLineNumber={targetLine}
-        sourceEditorRef={sourceEditorRef as any}
-        targetEditorRef={targetEditorRef as any}
+      {/* Right Panel — Glossary or AI Tutor */}
+      <GlossaryPanel
+        open={glossaryPanelOpen}
+        onClose={onGlossaryPanelClose ?? (() => {})}
+        sourceText={activeSourceLine}
+      />
+      <AiTutorPanel
+        open={aiTutorPanelOpen}
+        onClose={onAiTutorPanelClose ?? (() => {})}
+        sourceText={sourceValue}
+        targetText={targetValue}
       />
 
       {/* CSS for sync highlights */}

@@ -46,6 +46,38 @@ export const translations = {
         settings: "Settings",
       },
     },
+    // Toast
+    toast: {
+      copied: "Copied to clipboard",
+      exported: "Exported successfully",
+      imported: "File imported successfully",
+      cleared: "Panes cleared",
+      error: "An error occurred",
+      warning: "Warning",
+    },
+    // AI Tutor
+    tutor: {
+      title: "AI Tutor",
+      placeholder: "Ask the AI Tutor...",
+      evaluate: "Evaluate this translation",
+      improve: "Suggest improvements",
+      cultural: "Explain cultural nuances",
+      terminology: "Check terminology accuracy",
+      noApiKey: "Please add your Gemini API key in Settings first",
+    },
+    // Glossary Panel
+    glossaryPanel: {
+      title: "Glossary",
+      search: "Search Glossary...",
+      matched: "Matched Terminology",
+      notes: "Contextual Notes",
+      noTerms: "No matching terms. Type to search.",
+    },
+    // Drag & Drop
+    dragdrop: {
+      dropHere: "Drop file here",
+      supports: "Supports .txt, .docx, .md",
+    },
     // Welcome Tab
     welcome: {
       greeting: "Welcome to RDAT Copilot",
@@ -68,18 +100,18 @@ export const translations = {
           title: "Glossary Management",
           titleAr: "إدارة المسرد",
           description:
-            "Maintain consistent terminology with the GTR Glossary. Add, edit, and manage translation pairs across projects.",
+            "Maintain consistent terminology with the GTR Glossary. Search, browse, and manage translation pairs with contextual notes.",
           descriptionAr:
-            "حافظ على مصطلحات متسقة مع مسرد GTR. أضف وعدّل وأزواج الترجمة عبر المشاريع.",
+            "حافظ على مصطلحات متسقة مع مسرد GTR. ابحث وتصفح وأدر أزواج الترجمة مع ملاحظات سياقية.",
         },
         {
           step: "03",
-          title: "Vector Database",
-          titleAr: "قاعدة بيانات المتجهات",
+          title: "AI Translation Tutor",
+          titleAr: "معلم الترجمة الذكي",
           description:
-            "Leverage RAG-powered retrieval for contextually relevant translation suggestions from your corpus.",
+            "Get instant translation evaluation, improvement suggestions, and cultural nuance explanations from the AI Tutor panel.",
           descriptionAr:
-            "استفد من الاسترجاع المدعوم بـ RAG لاقتراحات ترجمة ذات صلة سياقياً من نصوصك.",
+            "احصل على تقييم فوري للترجمة واقتراحات التحسين وشروحات الفروق الثقافية من لوحة المعلم الذكي.",
         },
         {
           step: "04",
@@ -150,6 +182,38 @@ export const translations = {
         settings: "الإعدادات",
       },
     },
+    // Toast
+    toast: {
+      copied: "تم النسخ إلى الحافظة",
+      exported: "تم التصدير بنجاح",
+      imported: "تم استيراد الملف بنجاح",
+      cleared: "تم مسح اللوحات",
+      error: "حدث خطأ",
+      warning: "تحذير",
+    },
+    // AI Tutor
+    tutor: {
+      title: "المعلم الذكي",
+      placeholder: "اسأل المعلم الذكي...",
+      evaluate: "قيّم هذه الترجمة",
+      improve: "اقترح تحسينات",
+      cultural: "اشرح الفروق الثقافية",
+      terminology: "تحقق من المصطلحات",
+      noApiKey: "يرجى إضافة مفتاح Gemini API في الإعدادات أولاً",
+    },
+    // Glossary Panel
+    glossaryPanel: {
+      title: "المسرد",
+      search: "ابحث في المسرد...",
+      matched: "المصطلحات المتطابقة",
+      notes: "ملاحظات سياقية",
+      noTerms: "لا توجد مصطلحات متطابقة. اكتب للبحث.",
+    },
+    // Drag & Drop
+    dragdrop: {
+      dropHere: "أفلت الملف هنا",
+      supports: "يدعم .txt, .docx, .md",
+    },
     // Welcome Tab
     welcome: {
       greeting: "مرحباً بك في المساعد RDAT",
@@ -171,18 +235,18 @@ export const translations = {
           title: "إدارة المسرد",
           titleAr: "Glossary Management",
           description:
-            "حافظ على مصطلحات متسقة مع مسرد GTR. أضف وعدّل وأزواج الترجمة عبر المشاريع.",
+            "حافظ على مصطلحات متسقة مع مسرد GTR. ابحث وتصفح وأدر أزواج الترجمة مع ملاحظات سياقية.",
           descriptionAr:
-            "Maintain consistent terminology with the GTR Glossary. Add, edit, and manage translation pairs across projects.",
+            "Maintain consistent terminology with the GTR Glossary. Search, browse, and manage translation pairs with contextual notes.",
         },
         {
           step: "03",
-          title: "قاعدة بيانات المتجهات",
-          titleAr: "Vector Database",
+          title: "معلم الترجمة الذكي",
+          titleAr: "AI Translation Tutor",
           description:
-            "استفد من الاسترجاع المدعوم بـ RAG لاقتراحات ترجمة ذات صلة سياقياً من نصوصك.",
+            "احصل على تقييم فوري للترجمة واقتراحات التحسين وشروحات الفروق الثقافية من لوحة المعلم الذكي.",
           descriptionAr:
-            "Leverage RAG-powered retrieval for contextually relevant translation suggestions from your corpus.",
+            "Get instant translation evaluation, improvement suggestions, and cultural nuance explanations from the AI Tutor panel.",
         },
         {
           step: "04",

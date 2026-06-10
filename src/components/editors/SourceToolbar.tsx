@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
+import { useToastStore } from "@/stores/toast-store";
 import { Copy, FileText, Upload, AlignLeft } from "lucide-react";
 import * as mammoth from "mammoth";
 
@@ -15,10 +16,16 @@ export function SourceToolbar({ sourceText, onTextChange }: SourceToolbarProps) 
   const { locale } = useLanguage();
   const isRTL = locale === "ar";
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const addToast = useToastStore((s) => s.addToast);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(sourceText);
+      addToast(
+        isRTL ? "تم نسخ النص المصدر" : "Source text copied to clipboard",
+        "success",
+        2000
+      );
     } catch {
       // Fallback
       const ta = document.createElement("textarea");
@@ -27,6 +34,11 @@ export function SourceToolbar({ sourceText, onTextChange }: SourceToolbarProps) 
       ta.select();
       document.execCommand("copy");
       document.body.removeChild(ta);
+      addToast(
+        isRTL ? "تم نسخ النص المصدر" : "Source text copied to clipboard",
+        "success",
+        2000
+      );
     }
   };
 
@@ -39,12 +51,30 @@ export function SourceToolbar({ sourceText, onTextChange }: SourceToolbarProps) 
         const arrayBuffer = await file.arrayBuffer();
         const result = await mammoth.extractRawText({ arrayBuffer });
         onTextChange(result.value);
+        addToast(
+          isRTL
+            ? `تم استيراد ${file.name} بنجاح`
+            : `Successfully imported ${file.name}`,
+          "success"
+        );
       } else {
         const text = await file.text();
         onTextChange(text);
+        addToast(
+          isRTL
+            ? `تم استيراد ${file.name} بنجاح`
+            : `Successfully imported ${file.name}`,
+          "success"
+        );
       }
     } catch (err) {
       console.error("[SourceToolbar] File read failed:", err);
+      addToast(
+        isRTL
+          ? `فشل في قراءة الملف: ${file.name}`
+          : `Failed to read file: ${file.name}`,
+        "error"
+      );
     }
 
     e.target.value = "";
@@ -81,7 +111,7 @@ export function SourceToolbar({ sourceText, onTextChange }: SourceToolbarProps) 
       <input
         ref={fileInputRef}
         type="file"
-        accept=".txt,.docx"
+        accept=".txt,.docx,.md"
         onChange={handleFileUpload}
         className="hidden"
       />
@@ -91,7 +121,7 @@ export function SourceToolbar({ sourceText, onTextChange }: SourceToolbarProps) 
       {/* Source indicator */}
       <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40">
         <AlignLeft className="w-3 h-3" />
-        <span>EN</span>
+        <span>EN-US</span>
       </div>
     </div>
   );
